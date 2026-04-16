@@ -30,14 +30,14 @@ model Account {
 
 model Transaction {
   id             String   @id @default(uuid())
-  fromAccountId  String
-  toAccountId    String
+  fromAccountId  String?
+  toAccountId    String?
   amount         Int
   type           TransactionType
   createdAt      DateTime @default(now())
 
-  fromAccount Account @relation("fromAccount", fields: [fromAccountId], references: [id])
-  toAccount   Account @relation("toAccount", fields: [toAccountId], references: [id])
+  fromAccount Account? @relation("fromAccount", fields: [fromAccountId], references: [id])
+  toAccount   Account? @relation("toAccount", fields: [toAccountId], references: [id])
 }
 
 enum Role {
@@ -47,4 +47,6 @@ enum Role {
 
 enum TransactionType {
   TRANSFER
+  DEPOSIT
+  WITHDRAW
 }

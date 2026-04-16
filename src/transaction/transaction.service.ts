@@ -85,5 +85,97 @@ export class TransactionService {
       },
     });
   }
+  async deposit(userId: string, data: { accountId: string; amount: number }) {
+  const account = await this.prisma.account.findFirst({
+    where: {
+      id: data.accountId,
+      userId,
+    },
+  });
+
+  if (!account) {
+    throw new BadRequestException('Account tidak ditemukan');
+  }
+
+  return this.prisma.$transaction([
+    // tambah saldo
+    this.prisma.account.update({
+      where: { id: account.id },
+      data: {
+        balance: {
+          increment: data.amount,
+        },
+      },
+    }),
+
+    // simpan transaksi
+    this.prisma.transaction.create({
+      data: {
+        toAccountId: account.id,
+        amount: data.amount,
+        type: 'DEPOSIT',
+      },
+    }),
+  ]);
+}
+async withdraw(userId: string, data: { accountId: string; amount: number }) {
+  const account = await this.prisma.account.findFirst({
+    where: {
+      id: data.accountId,
+      userId,
+    },
+  });
+
+  if (!account) {
+    throw new BadRequestException('Account tidak ditemukan');
+  }
+
+  if (account.balance < data.amount) {
+    throw new BadRequestException('Saldo tidak cukup');
+  }
+
+  return this.prisma.$transaction([
+    // kurangi saldo
+    this.prisma.account.update({
+      where: { id: account.id },
+      data: {
+        balance: {
+          decrement: data.amount,
+        },
+      },
+    }),
+
+    // simpan transaksi
+    this.prisma.transaction.create({
+      data: {
+        fromAccountId: account.id,
+        amount: data.amount,
+        type: 'WITHDRAW',
+      },
+    }),
+  ]);
+}
+async findAll(userId: string) {
+  return this.prisma.transaction.findMany({
+    where: {
+      OR: [
+        {
+          fromAccount: {
+            userId,
+          },
+        },
+        {
+          toAccount: {
+            userId,
+          },
+        },
+      ],
+    },
+    include: {
+      fromAccount: true,
+      toAccount: true,
+    },
+  });
+}
 }
 

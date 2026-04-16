@@ -2,20 +2,35 @@ import { Controller, Post, Body, Req, UseGuards, Get } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { JwtAuthGuard } from '../auth/jwt/jwt.guard';
 
-@Controller('transaction')
+@Controller('transactions')
+@UseGuards(JwtAuthGuard) 
 export class TransactionController {
   constructor(private transactionService: TransactionService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @Get()
+  findAll(@Req() req: any) {
+    return this.transactionService.findAll(req.user.userId);
+  }
+
   @Post('transfer')
   transfer(@Req() req: any, @Body() body: any) {
     return this.transactionService.transfer(req.user.userId, body);
   }
 
-  @UseGuards(JwtAuthGuard)
-@Get('history')
-getMyTransactions(@Req() req: any) {
-  return this.transactionService.getMyTransactions(req.user.userId);
+  @Get('history')
+  getMyTransactions(@Req() req: any) {
+    return this.transactionService.getMyTransactions(req.user.userId);
+  }
+
+  @Post('deposit')
+  deposit(@Req() req: any, @Body() body: any) {
+    return this.transactionService.deposit(req.user.userId, body);
+  }
+
+  @Post('withdraw')
+  withdraw(@Req() req: any, @Body() body: any) {
+    return this.transactionService.withdraw(req.user.userId, body);
+  }
 }
-}
+
 
