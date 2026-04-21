@@ -1,0 +1,5 @@
+[build]
+command = "pnpm install && pnpm prisma generate && pnpm build"
+
+[start]
+command = "pnpm start:prod"
